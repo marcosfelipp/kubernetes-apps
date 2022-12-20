@@ -1,0 +1,62 @@
+- name: Setup Kubernetes with Ansible
+  hosts: cluster
+  become: True
+  tasks:
+    - name: Updating the system
+      apt: update_cache=yes force_apt_get=yes cache_valid_time=3600
+
+    - name: Installing Snap
+      apt: name=snapd state=latest
+
+    - name: Installing MicroK8s Snap Package
+      snap:
+        name: microk8s
+        channel: 1.24
+        classic: yes
+
+    - name: Adding vagrant user to microk8s group
+      user:
+        name: "{{ ansible_user }}"
+        groups: microk8s
+        append: yes
+      become: yes
+
+    - name: Giving vagrant user a permission to ~/.kube directory
+      file:
+        path: ~/.kube
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: 0775
+        state: directory
+        recurse: yes
+
+    - name: Enable addons microk8s
+      shell: microk8s.enable dns storage rbac
+      register: shell_result
+
+    - name: Disable firewall
+      shell: ufw disable
+      register: shell_result
+
+    - name: Installing Longhorn dependencies
+      apt:
+        pkg:
+        - dialog
+        - apt-utils
+        - open-iscsi
+        - nfs-common
+
+    - name: Load iscsi_tcp Driver
+      shell: modprobe iscsi_tcp
+
+    - name: Add hosts reference
+      shell: |
+        echo "192.168.0.150 master" >> /etc/hosts
+        echo "192.168.0.151 worker1" >> /etc/hosts
+        echo "192.168.0.152 worker2" >> /etc/hosts
+      become: yes
+
+    - shell: microk8s.kubectl get nodes
+      register: shell_result
+    - debug:
+        var: shell_result.stdout_lines
