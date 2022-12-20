@@ -1,0 +1,26 @@
+Vagrant.configure("2") do |config|
+  config.ssh.insert_key = false
+  config.vm.provider "virtualbox" do |vb|
+    vb.memory = "5000"
+    vb.cpus = "3"
+  end
+
+  config.vm.define "master" do |master|
+    master.vm.box = "ubuntu/bionic64"
+    master.vm.hostname = "master"
+    master.vm.network "public_network", bridge:"wlx2887bab68163", ip: "192.168.0.150"
+  end
+
+  config.vm.define "worker1" do |worker1|
+    worker1.vm.box = "ubuntu/bionic64"
+    worker1.vm.hostname = "worker1"
+    worker1.vm.network "public_network" , bridge:"wlx2887bab68163", ip: "192.168.0.151"
+  end
+
+  config.vm.define "worker2" do |worker2|
+    worker2.vm.box = "ubuntu/bionic64"
+    worker2.vm.hostname = "worker2"
+    worker2.vm.network "public_network", bridge:"wlx2887bab68163", ip: "192.168.0.152"
+  end
+
+end

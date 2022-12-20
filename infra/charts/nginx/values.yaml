@@ -1,0 +1,18 @@
+controller:
+  config:
+    compute-full-forward-for: "true"
+    use-fowarded-headers: "true"
+    proxy-body-size: "0"
+  ingressClass: external-nginx
+  ingressClassResource:
+    enabled: true
+    default: false
+  replicaCount: 1
+  admissionWebhooks:
+    enabled: true
+  metrics:
+    enabled: true
+    service:
+      annotations:
+        prometheus.io/port: "10254"
+        prometheus.io/scrape: "true"
