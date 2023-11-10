@@ -11,7 +11,7 @@
     - name: Installing MicroK8s Snap Package
       snap:
         name: microk8s
-        channel: 1.24
+        channel: 1.27
         classic: yes
 
     - name: Adding vagrant user to microk8s group

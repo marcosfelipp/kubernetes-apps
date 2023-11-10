@@ -4,7 +4,7 @@ vagrant up
 
 echo "Creating cluster"
 cd ansible
-ansible-playbook -i hosts install-k8s.yaml
+ansible-playbook -i hosts install-microk8s.yaml
 
 echo "Updating ssh key"
 for host in $hosts; do
@@ -20,3 +20,5 @@ token=`cat join-token`; ssh -i /home/${USER}/.vagrant.d/insecure_private_key vag
 echo "Adding node 2 to cluster"
 ssh -i /home/${USER}/.vagrant.d/insecure_private_key vagrant@"${hosts[1]}" "microk8s add-node" | grep "${hosts[1]}" > join-token
 token=`cat join-token`; ssh -i /home/${USER}/.vagrant.d/insecure_private_key vagrant@"${hosts[3]}" "$token"
+
+rm join-token

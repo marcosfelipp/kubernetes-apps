@@ -12,7 +12,7 @@ vagrant up
 
 ### In directory ./infra/ansible execute:
 ```bash
-ansible-playbook -i hosts install-k8s.yaml
+ansible-playbook -i hosts install-microk8s.yaml
 ```
 
 ### SSH to master and init get token to add nodes

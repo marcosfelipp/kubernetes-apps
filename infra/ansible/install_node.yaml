@@ -1,0 +1,63 @@
+---
+- name: Install Kubernetes
+  hosts: cluster
+  strategy: linear
+  become: true
+
+  tasks:
+    - name: disable swap
+      shell: swapoff -a
+
+    - name: install containerd
+      shell: apt-get update && apt-get -y install containerd.io
+
+    - name: copy containerd configuration
+      copy:
+        src: "files/containerd_config.toml"
+        dest: "/etc/containerd/config.toml"
+
+    - name: Reload containerd
+      shell: systemctl daemon-reload
+
+    - name: enable containerd
+      shell: systemctl enable --now containerd
+
+    - name: restart cotainerd
+      shell: systemctl restart containerd
+
+    - name: forwarding IPv4 and letting iptables see bridged traffic
+      copy:
+        src: "iptables"
+        dest: "/etc/modules-load.d/k8s.conf"
+
+    - name:
+      shell: |
+        modprobe overlay
+        modprobe br_netfilter
+
+    - name: Forwarding rules
+      copy:
+        src: "ip_foward"
+        dest: "/etc/sysctl.d/k8s.conf"
+
+    - name: Apply sysctl params without reboot
+      shell: sysctl --system
+
+    - name: Install kubeadm and kubectl
+      shell: |
+        apt-get install -y apt-transport-https ca-certificates curl
+        curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
+        echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+        apt-get update
+        apt-get install -y kubelet=1.24.0-00 kubeadm=1.24.0-00 kubectl=1.24.0-00
+        apt-mark hold kubelet kubeadm kubectl
+
+    - name: install csi driver to longhorn
+      shell: |
+        apt-get install -y open-iscsi
+
+    - name: enable iscsid
+      shell: |
+        echo "InitiatorName=$(/sbin/iscsi-iname)" > /etc/iscsi/initiatorname.iscsi
+        systemctl enable iscsid
+        systemctl start iscsid
